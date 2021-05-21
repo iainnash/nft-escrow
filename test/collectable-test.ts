@@ -161,7 +161,7 @@ describe("Escrow", function () {
         await signer2.getAddress()
       );
 
-    await escrowInstance.connect(signer1).cancelSale(ERC721.address, 2);
+    await escrowInstance.connect(signer1).cancelPendingSale(ERC721.address, 2);
 
     await expect(
       escrowInstance

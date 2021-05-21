@@ -19,10 +19,29 @@ struct PendingSale {
     uint256 currencyAmount;
 }
 
+
+
 contract NFTEscrow {
     bytes4 constant interfaceId = 0x80ac58cd; // 721 interface id
 
     mapping(address => mapping(uint256 => PendingSale)) private sales;
+
+    event CreatedPendingSale(
+        uint256 indexed tokenId,
+        address indexed tokenContract,
+        address indexed recipient,
+        address currency,
+        uint256 currencyAmount
+    );
+
+    event PurchasedNFT(
+        uint256 indexed tokenId,
+        address indexed tokenContract,
+        address indexed seller,
+        address recipient,
+        address currency,
+        uint256 currencyAmount
+    );
 
     function createPendingSale(
         address nftContract,
@@ -47,10 +66,19 @@ contract NFTEscrow {
             currencyAmount: currencyAmount,
             currentOwner: msg.sender
         });
+
+        emit CreatedPendingSale(mediaId, nftContract, recipient, currency, currencyAmount);
     }
 
-    function cancelSale(address nftContract, uint256 mediaId) external {
+    function cancelPendingSale(address nftContract, uint256 mediaId) external {
         delete sales[nftContract][mediaId];
+    }
+
+    function getPendingSale(address nftContract, uint256 mediaId) external view returns (
+        address recipient, address currentOwner, address currency, uint256 currencyAmount
+    ) {
+        PendingSale memory sale = sales[nftContract][mediaId];
+        return (sale.recipient, sale.currentOwner, sale.currency, sale.currencyAmount);
     }
 
     function purchaseNFT(
@@ -89,5 +117,7 @@ contract NFTEscrow {
             sale.recipient,
             mediaId
         );
+
+        emit PurchasedNFT(mediaId, nftContract, sale.currentOwner, sale.recipient, currencyAddress, currencyAmount);
     }
 }

@@ -22,13 +22,14 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface NftEscrowInterface extends ethers.utils.Interface {
   functions: {
-    "cancelSale(address,uint256)": FunctionFragment;
+    "cancelPendingSale(address,uint256)": FunctionFragment;
     "createPendingSale(address,uint256,address,uint256,address)": FunctionFragment;
+    "getPendingSale(address,uint256)": FunctionFragment;
     "purchaseNFT(address,uint256,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "cancelSale",
+    functionFragment: "cancelPendingSale",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -36,21 +37,38 @@ interface NftEscrowInterface extends ethers.utils.Interface {
     values: [string, BigNumberish, string, BigNumberish, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getPendingSale",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "purchaseNFT",
     values: [string, BigNumberish, string, BigNumberish]
   ): string;
 
-  decodeFunctionResult(functionFragment: "cancelSale", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "cancelPendingSale",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "createPendingSale",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getPendingSale",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "purchaseNFT",
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "CreatedPendingSale(uint256,address,address,address,uint256)": EventFragment;
+    "PurchasedNFT(uint256,address,address,address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "CreatedPendingSale"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "PurchasedNFT"): EventFragment;
 }
 
 export class NftEscrow extends Contract {
@@ -67,13 +85,13 @@ export class NftEscrow extends Contract {
   interface: NftEscrowInterface;
 
   functions: {
-    cancelSale(
+    cancelPendingSale(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "cancelSale(address,uint256)"(
+    "cancelPendingSale(address,uint256)"(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
@@ -97,6 +115,36 @@ export class NftEscrow extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
+    getPendingSale(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      recipient: string;
+      currentOwner: string;
+      currency: string;
+      currencyAmount: BigNumber;
+      0: string;
+      1: string;
+      2: string;
+      3: BigNumber;
+    }>;
+
+    "getPendingSale(address,uint256)"(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      recipient: string;
+      currentOwner: string;
+      currency: string;
+      currencyAmount: BigNumber;
+      0: string;
+      1: string;
+      2: string;
+      3: BigNumber;
+    }>;
+
     purchaseNFT(
       nftContract: string,
       mediaId: BigNumberish,
@@ -114,13 +162,13 @@ export class NftEscrow extends Contract {
     ): Promise<ContractTransaction>;
   };
 
-  cancelSale(
+  cancelPendingSale(
     nftContract: string,
     mediaId: BigNumberish,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "cancelSale(address,uint256)"(
+  "cancelPendingSale(address,uint256)"(
     nftContract: string,
     mediaId: BigNumberish,
     overrides?: Overrides
@@ -144,6 +192,36 @@ export class NftEscrow extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
+  getPendingSale(
+    nftContract: string,
+    mediaId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<{
+    recipient: string;
+    currentOwner: string;
+    currency: string;
+    currencyAmount: BigNumber;
+    0: string;
+    1: string;
+    2: string;
+    3: BigNumber;
+  }>;
+
+  "getPendingSale(address,uint256)"(
+    nftContract: string,
+    mediaId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<{
+    recipient: string;
+    currentOwner: string;
+    currency: string;
+    currencyAmount: BigNumber;
+    0: string;
+    1: string;
+    2: string;
+    3: BigNumber;
+  }>;
+
   purchaseNFT(
     nftContract: string,
     mediaId: BigNumberish,
@@ -161,13 +239,13 @@ export class NftEscrow extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    cancelSale(
+    cancelPendingSale(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "cancelSale(address,uint256)"(
+    "cancelPendingSale(address,uint256)"(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: CallOverrides
@@ -190,6 +268,36 @@ export class NftEscrow extends Contract {
       recipient: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getPendingSale(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      recipient: string;
+      currentOwner: string;
+      currency: string;
+      currencyAmount: BigNumber;
+      0: string;
+      1: string;
+      2: string;
+      3: BigNumber;
+    }>;
+
+    "getPendingSale(address,uint256)"(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      recipient: string;
+      currentOwner: string;
+      currency: string;
+      currencyAmount: BigNumber;
+      0: string;
+      1: string;
+      2: string;
+      3: BigNumber;
+    }>;
 
     purchaseNFT(
       nftContract: string,
@@ -208,16 +316,33 @@ export class NftEscrow extends Contract {
     ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    CreatedPendingSale(
+      tokenId: BigNumberish | null,
+      tokenContract: string | null,
+      recipient: string | null,
+      currency: null,
+      currencyAmount: null
+    ): EventFilter;
+
+    PurchasedNFT(
+      tokenId: BigNumberish | null,
+      tokenContract: string | null,
+      seller: string | null,
+      recipient: null,
+      currency: null,
+      currencyAmount: null
+    ): EventFilter;
+  };
 
   estimateGas: {
-    cancelSale(
+    cancelPendingSale(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "cancelSale(address,uint256)"(
+    "cancelPendingSale(address,uint256)"(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
@@ -239,6 +364,18 @@ export class NftEscrow extends Contract {
       currencyAmount: BigNumberish,
       recipient: string,
       overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    getPendingSale(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getPendingSale(address,uint256)"(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     purchaseNFT(
@@ -259,13 +396,13 @@ export class NftEscrow extends Contract {
   };
 
   populateTransaction: {
-    cancelSale(
+    cancelPendingSale(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "cancelSale(address,uint256)"(
+    "cancelPendingSale(address,uint256)"(
       nftContract: string,
       mediaId: BigNumberish,
       overrides?: Overrides
@@ -287,6 +424,18 @@ export class NftEscrow extends Contract {
       currencyAmount: BigNumberish,
       recipient: string,
       overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    getPendingSale(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getPendingSale(address,uint256)"(
+      nftContract: string,
+      mediaId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     purchaseNFT(
